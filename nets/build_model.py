@@ -5,7 +5,7 @@ from tensorflow.keras.layers import (InputSpec, Layer, Activation, BatchNormaliz
 import tensorflow.keras.backend as K
 from tensorflow.keras.models import Model
 from nets.model_loss import MinCostMatcher, Focal_loss, Giou_loss, Loc_loss
-from nets.head import onenet_head, faster_onenet_head
+from nets.head import faster_onenet_head
 
 
 class decode(Layer):
@@ -97,17 +97,11 @@ class decode(Layer):
 
 
 
-def build_model(input_shape, num_classes, structure='onenet', backbone='resnet50',
-                max_objects=100, mode="train", prior_prob=0.01, alpha=0.25, gamma=2.0, output_layers=6):
+def build_model(input_shape, num_classes, backbone='resnet50',
+                max_objects=100, mode="train", prior_prob=0.01, alpha=0.25, gamma=2.0):
     assert backbone.lower() in ['resnet18', 'resnet50']
-    assert structure.lower() in ['onenet', 'faster_onenet']
     input_tensor = Input(shape=input_shape, name="image_input")
-    if structure.lower()=='onenet':
-        net = onenet_head(input_tensor, num_classes, prior_prob, backbone)
-    elif structure.lower()=='faster_onenet':
-        net, num_anchors= faster_onenet_head(input_tensor, num_classes, prior_prob, backbone)
-    if 'num_anchors' not in locals():
-        num_anchors = 1
+    net, num_anchors= faster_onenet_head(input_tensor, num_classes, prior_prob, backbone)
     # --------------------------------------------------------------------------------------------------------#
     #   对获取到的特征进行上采样，进行分类预测和回归预测
     #   16, 16, 1024 -> 32, 32, 256 -> 64, 64, 128 -> 128, 128, 64 -> 128, 128, 64 -> 128, 128, num_classes

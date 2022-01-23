@@ -42,9 +42,6 @@ class OneNet(object):
         "model_path"        : 'model_data/faster_onenet_resnet50.h5',
         "classes_path"      : 'model_data/voc_classes.txt',
         #--------------------------------------------------------------------------#
-        #   輸入模型結構 "faster_onenet" or "onenet"
-        # --------------------------------------------------------------------------#
-        "structure"         : 'faster_onenet',
         #--------------------------------------------------------------------------#
         #   输入图片的大小
         #--------------------------------------------------------------------------#
@@ -113,11 +110,9 @@ class OneNet(object):
     def generate(self):
         self.model = build_model(self.input_shape,
                                  num_classes=self.num_classes,
-                                 structure=self.structure,
                                  backbone=self.backbone,
                                  max_objects=self.max_objects,
-                                 mode='predict',
-                                 output_layers=self.output_layers if hasattr(self, "output_layers") else None)
+                                 mode='predict')
         if hasattr(self, "model_path"):
             self.model.load_weights(self.model_path, by_name=True, skip_mismatch=True)
             print('{} model, anchors, and classes loaded.'.format(self.model_path))

@@ -47,16 +47,15 @@ if __name__ == "__main__":
     #   classes_path对应的txt的内容
     #   修改成自己需要分的类
     #-----------------------------#
-    structure = 'faster_onenet'
-    datasets = 'COCO'
-    if datasets=='COCO':
-        classes_path = 'model_data/coco_classes.txt'
+    datasets = 'voc'
+    if datasets.lower()=='coco':
+        annotation_path = 'COCO/train2017.txt'
     else:
-        classes_path = 'model_data/voc_classes.txt'
+        annotation_path = 'VOCdevkit/2012_train.txt'
     #----------------------------------------------------#
     #   获取classes和数量
     #----------------------------------------------------#
-    class_names, num_classes = get_classes(classes_path)
+    class_names, num_classes = get_classes(annotation_path)
     #-----------------------------#
     #   主干特征提取网络的选择
     #   resnet18
@@ -64,15 +63,14 @@ if __name__ == "__main__":
     #-----------------------------#
     backbone = "resnet18"
     max_objects = 40
-    output_layers = 2
     #------------------------------------------------------#
     #   权值文件请看README，百度网盘下载
     #   训练自己的数据集时提示维度不匹配正常
     #   预测的东西都不一样了自然维度不匹配
     #------------------------------------------------------#
-    if not os.path.isdir('./logs/{}'.format(structure)):
-        os.mkdir('./logs/{}'.format(structure))
-    path = './logs/{}/{}'.format(structure, backbone)
+    if not os.path.isdir('./logs/faster_onenet'):
+        os.mkdir('./logs/faster_onenet')
+    path = './logs/faster_onenet/{}'.format(backbone)
     if not os.path.isdir(path):
         os.mkdir(path)
     model_path = new_log(path)
@@ -80,7 +78,6 @@ if __name__ == "__main__":
     #----------------------------------------------------#
     #   获得图片路径和标签
     #----------------------------------------------------#
-    datasets = 'COCO'
     if datasets.lower()=='coco':
         annotation_path = 'COCO/train2017.txt'
     else:
@@ -128,13 +125,6 @@ if __name__ == "__main__":
                      'loc':lambda y_true, y_pred: y_pred,
                      'giou':lambda y_true, y_pred: y_pred}
         loss_weights = [2, 5, 2]
-        # for name in loss_names:
-        #     loss_list[name] = lambda y_true, y_pred: y_pred
-        #     if 'cls' in name: loss_weights.append(2)
-        #     if 'loc' in name: loss_weights.append(5)
-        #     if 'giou' in name: loss_weights.append(2)
-
-
         model.compile(
             loss=loss_list,
             loss_weights=loss_weights,
@@ -155,11 +145,9 @@ if __name__ == "__main__":
     #----------------------------------------------------#
     model = build_model(input_shape,
                         num_classes=num_classes,
-                        structure=structure,
                         backbone=backbone,
                         max_objects=max_objects,
-                        mode='train',
-                        output_layers=output_layers)
+                        mode='train')
     model_path = new_log(path)
     if model_path:
         model.load_weights(model_path, by_name=True, skip_mismatch=False)
@@ -167,22 +155,22 @@ if __name__ == "__main__":
 
     Lr = 5e-5
     Batch_size = 12
-    Init_Epoch = 1400
-    Epoch = 2
+    Init_Epoch = 0
+    Epoch = 700
 
     hist = fit_model(model, Lr, Batch_size, Init_Epoch, run_Epoch=Epoch, warmup_proportion=0.01, min_scale=1, max_objects=max_objects)
 
 
-    # Lr = 5e-6
-    # Batch_size = 12
-    # Init_Epoch = 700
-    # Epoch = 400
-    #
-    # hist = fit_model(model, Lr, Batch_size, Init_Epoch, run_Epoch=Epoch, warmup_proportion=0.0, min_scale=1, max_objects=max_objects)
-    #
-    # Lr = 5e-7
-    # Batch_size = 12
-    # Init_Epoch = 1100
-    # Epoch = 300
-    #
-    # hist = fit_model(model, Lr, Batch_size, Init_Epoch, run_Epoch=Epoch, warmup_proportion=0.0, min_scale=1, max_objects=max_objects)
+    Lr = 5e-6
+    Batch_size = 12
+    Init_Epoch = 700
+    Epoch = 400
+
+    hist = fit_model(model, Lr, Batch_size, Init_Epoch, run_Epoch=Epoch, warmup_proportion=0.0, min_scale=1, max_objects=max_objects)
+
+    Lr = 5e-7
+    Batch_size = 12
+    Init_Epoch = 1100
+    Epoch = 300
+
+    hist = fit_model(model, Lr, Batch_size, Init_Epoch, run_Epoch=Epoch, warmup_proportion=0.0, min_scale=1, max_objects=max_objects)
